@@ -137,6 +137,12 @@ function calcThreadDepth(pitchMm, toolAngleDeg) {
   return Number((factor * pitchMm).toFixed(3));
 }
 
+function describeValue(r) {
+  if (r.threadType === "inch") return `${r.tpi} TPI (${r.pitchMm} mm)`;
+  if (r.threadType === "module") return `moodul ${r.moduleMm} (samm ${r.pitchMm} mm)`;
+  return `${r.pitchMm} mm`;
+}
+
 function findMatchingStandard(r, diameter) {
   return STANDARD_THREADS.find((std) => {
     if (std.threadType !== r.threadType) return false;
@@ -159,6 +165,8 @@ function generateInstructions() {
   const toolAngleDeg = (std && std.toolAngleDeg) || 60;
 
   const summaryLines = [];
+  if (std) summaryLines.push(`Standard: <strong>${std.designation}</strong>`);
+  summaryLines.push(`Keere: <strong>${describeValue(r)}</strong>`);
 
   if (r.threadType !== "module" && !Number.isNaN(nominalDiameter) && nominalDiameter > 0) {
     const blank = calcBlankSize(nominalDiameter, r.pitchMm, directionEl.value);
