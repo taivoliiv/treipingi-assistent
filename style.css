@@ -1,0 +1,173 @@
+:root {
+  --bg: #f5f6f8;
+  --panel-bg: #ffffff;
+  --text: #1a1d23;
+  --text-muted: #6b7280;
+  --line: #1e2a4a;
+  --accent: #ea580c;
+  --accent-bg: #fff2e8;
+  --border: #e2e5eb;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --panel-bg: #1c1f26;
+    --text: #eef0f3;
+    --text-muted: #9aa1ac;
+    --line: #c7d0e6;
+    --accent: #ff8a3d;
+    --accent-bg: #3a2716;
+    --border: #2b2f38;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.panel h2 {
+  margin: 0 0 0.9rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+}
+
+.diagram-wrap {
+  position: relative;
+  line-height: 0;
+}
+
+.lathe-photo {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ring {
+  position: absolute;
+  width: 3.6%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3px solid #d61f1f;
+  box-shadow: 0 0 0 4px rgba(214, 31, 31, 0.28);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ring.highlight {
+  opacity: 1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.field label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.field select,
+.field input {
+  padding: 0.55rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.instructions-output .placeholder {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.instructions-output ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.instructions-output li {
+  margin-bottom: 0.5rem;
+}
+
+.lever-ref {
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: default;
+}
+
+/* Desktop layout: diagram, controls and instructions side by side so
+   everything fits within the viewport height without scrolling. */
+@media (min-width: 900px) {
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 460px) minmax(260px, 340px) minmax(320px, 1fr);
+    grid-template-areas: "diagram controls instructions";
+    align-items: start;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  .diagram-panel { grid-area: diagram; }
+  .controls-panel { grid-area: controls; }
+  .instructions-panel { grid-area: instructions; }
+}

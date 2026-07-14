@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treipingi seadistaja</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>Treipingi ЛТ-10 seadistamise assistent</h1>
+</header>
+
+<main class="layout">
+
+  <section class="panel diagram-panel" aria-label="Treipingi joonis">
+    <div class="diagram-wrap">
+      <img class="lathe-photo" src="assets/lathe.png" alt="Treipingi skeem koos seadistuspunktidega A-G">
+      <div class="overlay" id="lathe-overlay">
+        <div class="ring" data-point="A" style="left:6.95%; top:17.08%;"></div>
+        <div class="ring" data-point="B" style="left:28.58%; top:20.61%;"></div>
+        <div class="ring" data-point="C" style="left:6.28%; top:36.39%;"></div>
+        <div class="ring" data-point="D" style="left:6.33%; top:45.59%;"></div>
+        <div class="ring" data-point="E" style="left:28.19%; top:36.64%;"></div>
+        <div class="ring" data-point="F" style="left:28.91%; top:45.73%;"></div>
+        <div class="ring" data-point="G" style="left:31.17%; top:53.9%;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel controls-panel" aria-label="Keerme valik">
+    <div class="field">
+      <label for="operation">Toiming</label>
+      <select id="operation">
+        <option value="threading" selected>Keermestamine</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="standard-thread">Standardne keere</label>
+      <select id="standard-thread">
+        <option value="">— vali standard —</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="thread-type">Keerme tüüp</label>
+      <select id="thread-type">
+        <option value="metric">Meetriline (mm)</option>
+        <option value="module">Moodulkeere</option>
+        <option value="inch">Tollikeere (TPI)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="thread-value">Keerme samm</label>
+      <select id="thread-value"></select>
+    </div>
+
+    <div class="field" id="direction-field">
+      <label for="thread-direction">Keerme tüüp</label>
+      <select id="thread-direction">
+        <option value="internal">Sisekeere</option>
+        <option value="external" selected>Väliskeere</option>
+      </select>
+    </div>
+
+    <div class="field" id="diameter-field">
+      <label for="diameter">Nimiläbimõõt (mm)</label>
+      <input type="number" id="diameter" step="0.01" min="0" placeholder="nt 8">
+    </div>
+  </section>
+
+  <section class="panel instructions-panel" aria-label="Seadistusjuhised">
+    <h2>Juhised</h2>
+    <div id="instructions-output" class="instructions-output">
+      <p class="placeholder">Vali keere, seejärel vajuta &quot;Genereeri juhised&quot;.</p>
+    </div>
+  </section>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
