@@ -211,11 +211,11 @@ function generateInstructions() {
     if (material) lines.push(`Treimisel: <strong>${material.turningDepthMm} mm</strong>`);
     if (material) {
       const totalThreadDepth = calcThreadDepth(r.pitchMm, toolAngleDeg);
-      const passes = calcThreadingPasses(totalThreadDepth, material.turningDepthMm);
+      const initialPasses = calcThreadingPasses(totalThreadDepth, material.turningDepthMm);
       const compoundAngle = calcCompoundAngle(toolAngleDeg);
-      const schedule = calcThreadingPassSchedule(totalThreadDepth, passes, compoundAngle);
-      const readings = schedule.map((s) => s.compoundReadingMm).join(", ");
-      lines.push(`Keermestamisel (${passes} lõiget, ülemine kelk <strong>${compoundAngle}°</strong>)<br>Ülemise kelgu näidud: <strong>${readings} mm</strong>`);
+      const schedule = calcThreadingPassSchedule(totalThreadDepth, initialPasses, compoundAngle);
+      const readings = schedule.map((s) => s.dialUnits).join(", ");
+      lines.push(`Keermestamisel (${schedule.length} lõiget, ülemine kelk <strong>${compoundAngle}°</strong>)<br>Ülemise kelgu näidud (${COMPOUND_DIAL_UNIT_MM} mm/ühik): <strong>${readings}</strong>`);
     }
     if (lines.length) depthStep = `<li>Soovituslik lõikesügavus<br>${lines.join("<br>")}</li>`;
   }

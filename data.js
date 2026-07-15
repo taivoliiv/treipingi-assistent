@@ -54,22 +54,54 @@ function calcCompoundAngle(toolAngleDeg) {
   return toolAngleDeg / 2 - 1;
 }
 
+// Ülemise kelgu skaala samm - üks skaalaühik vastab 0.05mm liikumisele.
+const COMPOUND_DIAL_UNIT_MM = 0.05;
+
+// Ükski üksik lõige ei tohi ületada seda raadiussügavust - ruutjuure-mudel
+// annaks vastasel juhul esimesele lõikele ebamõistlikult suure sügavuse.
+const THREADING_MAX_PASS_DEPTH_MM = 0.25;
+
 // Kahanev lõigete kava: kumulatiivne raadiussügavus = kogusügavus x sqrt(lõige/lõigete_arv).
 // Kuna keerme ristlõike pindala kasvab sügavusega ruutfunktsioonina, hoiab see
 // iga lõike eemaldatava metalli koguse ligikaudu ühtlasena (sama põhimõte, mida
-// kasutavad CNC-pinkide "constant area" keermetsüklid). Ülemise kelgu näit on
-// kumulatiivne raadiussügavus jagatud ülemise kelgu nurga koosinusega, sest
-// ülemine kelk liigub mööda harja, mitte raadiaalselt.
+// kasutavad CNC-pinkide "constant area" keermetsüklid). Lõiked, mis ületaksid
+// THREADING_MAX_PASS_DEPTH_MM, jagatakse mitmeks väiksemaks lõikeks. Ülemise
+// kelgu näit on kumulatiivne raadiussügavus jagatud ülemise kelgu nurga
+// koosinusega, sest ülemine kelk liigub mööda harja, mitte raadiaalselt.
 function calcThreadingPassSchedule(totalDepthMm, passes, compoundAngleDeg) {
-  const cosAngle = Math.cos((compoundAngleDeg * Math.PI) / 180);
-  const schedule = [];
+  const idealIncrements = [];
+  let previousCumulativeRadial = 0;
   for (let n = 1; n <= passes; n++) {
     const cumulativeRadial = totalDepthMm * Math.sqrt(n / passes);
-    schedule.push({
-      pass: n,
-      compoundReadingMm: Number((cumulativeRadial / cosAngle).toFixed(3)),
-    });
+    idealIncrements.push(cumulativeRadial - previousCumulativeRadial);
+    previousCumulativeRadial = cumulativeRadial;
   }
+
+  const radialIncrements = [];
+  idealIncrements.forEach((increment) => {
+    if (increment <= THREADING_MAX_PASS_DEPTH_MM) {
+      radialIncrements.push(increment);
+      return;
+    }
+    const subPasses = Math.ceil(increment / THREADING_MAX_PASS_DEPTH_MM);
+    for (let i = 0; i < subPasses; i++) radialIncrements.push(increment / subPasses);
+  });
+
+  const cosAngle = Math.cos((compoundAngleDeg * Math.PI) / 180);
+  const schedule = [];
+  let cumulativeDialUnits = 0;
+  radialIncrements.forEach((incrementRadial, index) => {
+    const incrementCompoundMm = incrementRadial / cosAngle;
+    // Ümardame iga lõike enda juurdekasvu (mitte kumulatiivset summat), sest
+    // sõltumatult ümardatud kumulatiivsete väärtuste vahed ei pruugi jääda
+    // monotoonselt kahanevaks isegi kui alusjada seda on.
+    cumulativeDialUnits += Math.max(1, Math.round(incrementCompoundMm / COMPOUND_DIAL_UNIT_MM));
+    schedule.push({
+      pass: index + 1,
+      compoundReadingMm: Number((cumulativeDialUnits * COMPOUND_DIAL_UNIT_MM).toFixed(3)),
+      dialUnits: cumulativeDialUnits,
+    });
+  });
   return schedule;
 }
 
