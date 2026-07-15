@@ -48,8 +48,8 @@ function calcThreadingPasses(totalDepthMm, turningDepthMm) {
   return Math.max(3, Math.round(totalDepthMm / targetPassDepth));
 }
 
-// Ristkelk seatakse tavapäraselt keerme poolnurgast 1 kraadi võrra vähem,
-// nii et lõikab ainult juhtiv hari (mitte mõlemad korraga).
+// Ülemine kelk (compound slide) seatakse tavapäraselt keerme poolnurgast
+// 1 kraadi võrra vähem, nii et lõikab ainult juhtiv hari (mitte mõlemad korraga).
 function calcCompoundAngle(toolAngleDeg) {
   return toolAngleDeg / 2 - 1;
 }
@@ -57,9 +57,9 @@ function calcCompoundAngle(toolAngleDeg) {
 // Kahanev lõigete kava: kumulatiivne raadiussügavus = kogusügavus x sqrt(lõige/lõigete_arv).
 // Kuna keerme ristlõike pindala kasvab sügavusega ruutfunktsioonina, hoiab see
 // iga lõike eemaldatava metalli koguse ligikaudu ühtlasena (sama põhimõte, mida
-// kasutavad CNC-pinkide "constant area" keermetsüklid). Ristkelu näit on
-// kumulatiivne raadiussügavus jagatud ristkelu nurga koosinusega, sest ristkelk
-// liigub mööda harja, mitte raadiaalselt.
+// kasutavad CNC-pinkide "constant area" keermetsüklid). Ülemise kelgu näit on
+// kumulatiivne raadiussügavus jagatud ülemise kelgu nurga koosinusega, sest
+// ülemine kelk liigub mööda harja, mitte raadiaalselt.
 function calcThreadingPassSchedule(totalDepthMm, passes, compoundAngleDeg) {
   const cosAngle = Math.cos((compoundAngleDeg * Math.PI) / 180);
   const schedule = [];

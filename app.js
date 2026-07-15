@@ -215,7 +215,7 @@ function generateInstructions() {
       const compoundAngle = calcCompoundAngle(toolAngleDeg);
       const schedule = calcThreadingPassSchedule(totalThreadDepth, passes, compoundAngle);
       const readings = schedule.map((s) => s.compoundReadingMm).join(", ");
-      lines.push(`Keermestamisel (${passes} lõiget, ristkelk <strong>${compoundAngle}°</strong>)<br>Ristkelgu näidud: <strong>${readings} mm</strong>`);
+      lines.push(`Keermestamisel (${passes} lõiget, ülemine kelk <strong>${compoundAngle}°</strong>)<br>Ülemise kelgu näidud: <strong>${readings} mm</strong>`);
     }
     if (lines.length) depthStep = `<li>Soovituslik lõikesügavus<br>${lines.join("<br>")}</li>`;
   }
