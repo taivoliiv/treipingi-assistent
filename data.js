@@ -11,6 +11,78 @@ const NORTON_MULTIPLIERS = [
   { factor: 8, leverC: "II", leverD: "III" },
 ];
 
+// Spindli pöördekiirused (p/min) hoobade B ja G asenditel.
+const SPINDLE_SPEEDS = [
+  { leverB: "I", leverG: 1, rpm: 34.5 },
+  { leverB: "I", leverG: 2, rpm: 52 },
+  { leverB: "I", leverG: 3, rpm: 82.5 },
+  { leverB: "I", leverG: 4, rpm: 132 },
+  { leverB: "II", leverG: 1, rpm: 212 },
+  { leverB: "II", leverG: 2, rpm: 330 },
+  { leverB: "II", leverG: 3, rpm: 520 },
+  { leverB: "II", leverG: 4, rpm: 832 },
+];
+
+// Üldtunnustatud lõikekiirused (Vc, m/min) HSS-terale, tavatreimise jaoks.
+// Keermelõikusel kasutatakse madalamat kiirust (vt THREADING_SPEED_FACTOR),
+// et jääks aega poolmutrit käsitsi juhtida. turningDepthMm on üldtunnustatud
+// soovituslik lõikesügavus (ap) HSS-teraga ühe käiguga treimisel.
+const MATERIALS = [
+  { id: "aluminium", label: "Alumiinium", turningVcMPerMin: 150, turningDepthMm: 2.5 },
+  { id: "brass", label: "Messing", turningVcMPerMin: 90, turningDepthMm: 2 },
+  { id: "cast-iron", label: "Malm", turningVcMPerMin: 20, turningDepthMm: 2 },
+  { id: "c45", label: "Teras (C45)", turningVcMPerMin: 25, turningDepthMm: 1.5 },
+  { id: "alloy-steel", label: "Tööriistateras", turningVcMPerMin: 15, turningDepthMm: 1 },
+  { id: "stainless", label: "Roostevaba teras", turningVcMPerMin: 15, turningDepthMm: 1 },
+];
+
+const THREADING_SPEED_FACTOR = 0.4;
+
+// Keermelõikus tehakse mitme järjestikuse lõikega, mitte ühe korraga. Sihitud
+// keskmine ühe lõike sügavus skaleerub materjaliga - kasutame osa materjali
+// treimise lõikesügavusest (turningDepthMm), mitte fikseeritud väärtust.
+const THREADING_PASS_DEPTH_FACTOR = 0.1;
+
+function calcThreadingPasses(totalDepthMm, turningDepthMm) {
+  const targetPassDepth = turningDepthMm * THREADING_PASS_DEPTH_FACTOR;
+  return Math.max(3, Math.round(totalDepthMm / targetPassDepth));
+}
+
+// Ristkelk seatakse tavapäraselt keerme poolnurgast 1 kraadi võrra vähem,
+// nii et lõikab ainult juhtiv hari (mitte mõlemad korraga).
+function calcCompoundAngle(toolAngleDeg) {
+  return toolAngleDeg / 2 - 1;
+}
+
+// Kahanev lõigete kava: kumulatiivne raadiussügavus = kogusügavus x sqrt(lõige/lõigete_arv).
+// Kuna keerme ristlõike pindala kasvab sügavusega ruutfunktsioonina, hoiab see
+// iga lõike eemaldatava metalli koguse ligikaudu ühtlasena (sama põhimõte, mida
+// kasutavad CNC-pinkide "constant area" keermetsüklid). Ristkelu näit on
+// kumulatiivne raadiussügavus jagatud ristkelu nurga koosinusega, sest ristkelk
+// liigub mööda harja, mitte raadiaalselt.
+function calcThreadingPassSchedule(totalDepthMm, passes, compoundAngleDeg) {
+  const cosAngle = Math.cos((compoundAngleDeg * Math.PI) / 180);
+  const schedule = [];
+  for (let n = 1; n <= passes; n++) {
+    const cumulativeRadial = totalDepthMm * Math.sqrt(n / passes);
+    schedule.push({
+      pass: n,
+      compoundReadingMm: Number((cumulativeRadial / cosAngle).toFixed(3)),
+    });
+  }
+  return schedule;
+}
+
+function calcRpmForCuttingSpeed(vcMPerMin, diameterMm) {
+  return (vcMPerMin * 1000) / (Math.PI * diameterMm);
+}
+
+function findNearestSpindleSpeed(targetRpm) {
+  return SPINDLE_SPEEDS.reduce((best, cur) =>
+    Math.abs(cur.rpm - targetRpm) < Math.abs(best.rpm - targetRpm) ? cur : best
+  );
+}
+
 // Levinud standardkeermed - valimisel täidetakse automaatselt läbimõõt ja
 // leitakse vastav saavutatav samm/TPI (kõik allolevad on kontrollitud
 // saavutatavaks praeguste kitarri kombinatsioonidega).

@@ -5,15 +5,13 @@ const directionEl = document.getElementById("thread-direction");
 const directionFieldEl = document.getElementById("direction-field");
 const diameterEl = document.getElementById("diameter");
 const diameterFieldEl = document.getElementById("diameter-field");
+const materialEl = document.getElementById("material");
+const materialFieldEl = document.getElementById("material-field");
 const outputEl = document.getElementById("instructions-output");
 
 const EXTERNAL_TURNING_ALLOWANCE_MM = 0.1;
 
 let currentOptions = [];
-
-function gitaraGearsString(gears) {
-  return `${gears.slice(0, -1).join(", ")} ja ${gears[gears.length - 1]}`;
-}
 
 function buildOptionsForType(type) {
   const options = [];
@@ -82,6 +80,18 @@ function populateValues() {
   const supportsBlankSize = threadTypeEl.value !== "module";
   diameterFieldEl.style.display = supportsBlankSize ? "" : "none";
   directionFieldEl.style.display = supportsBlankSize ? "" : "none";
+  materialFieldEl.style.display = supportsBlankSize ? "" : "none";
+}
+
+function populateMaterials() {
+  MATERIALS.forEach((mat, index) => {
+    const el = document.createElement("option");
+    el.value = String(index);
+    el.textContent = mat.label;
+    materialEl.appendChild(el);
+  });
+  const defaultIndex = MATERIALS.findIndex((mat) => mat.id === "c45");
+  if (defaultIndex !== -1) materialEl.value = String(defaultIndex);
 }
 
 function populateStandardThreads() {
@@ -168,8 +178,10 @@ function generateInstructions() {
   if (std) summaryLines.push(`Standard: <strong>${std.designation}</strong>`);
   summaryLines.push(`Keere: <strong>${describeValue(r)}</strong>`);
 
-  if (r.threadType !== "module" && !Number.isNaN(nominalDiameter) && nominalDiameter > 0) {
-    const blank = calcBlankSize(nominalDiameter, r.pitchMm, directionEl.value);
+  let blank = null;
+  const hasDiameter = r.threadType !== "module" && !Number.isNaN(nominalDiameter) && nominalDiameter > 0;
+  if (hasDiameter) {
+    blank = calcBlankSize(nominalDiameter, r.pitchMm, directionEl.value);
     const label = directionEl.value === "external" ? "Soovituslik tooriku läbimõõt" : "Augu läbimõõt";
     summaryLines.push(`${label}: <strong>Ø${blank.diameter} mm</strong>`);
   }
@@ -181,12 +193,39 @@ function generateInstructions() {
 
   const summaryStep = summaryLines.length ? `<li>${summaryLines.join("<br>")}</li>` : "";
 
+  let speedStep = "";
+  const material = MATERIALS[Number(materialEl.value)];
+  if (material && hasDiameter && directionEl.value === "external") {
+    const turningRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin, blank.diameter);
+    const turning = findNearestSpindleSpeed(turningRpmTarget);
+
+    const threadingRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin * THREADING_SPEED_FACTOR, blank.diameter);
+    const threading = findNearestSpindleSpeed(threadingRpmTarget);
+
+    speedStep = `<li>Optimaalne kiirus<br>Tooriku treimisel: <strong>${turning.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${turning.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${turning.leverG}</strong>)<br>Keermestamisel: <strong>${threading.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${threading.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${threading.leverG}</strong>)</li>`;
+  }
+
+  let depthStep = "";
+  if (r.threadType !== "module") {
+    const lines = [];
+    if (material) lines.push(`Treimisel: <strong>${material.turningDepthMm} mm</strong>`);
+    if (material) {
+      const totalThreadDepth = calcThreadDepth(r.pitchMm, toolAngleDeg);
+      const passes = calcThreadingPasses(totalThreadDepth, material.turningDepthMm);
+      const compoundAngle = calcCompoundAngle(toolAngleDeg);
+      const schedule = calcThreadingPassSchedule(totalThreadDepth, passes, compoundAngle);
+      const readings = schedule.map((s) => s.compoundReadingMm).join(", ");
+      lines.push(`Keermestamisel (${passes} lõiget, ristkelk <strong>${compoundAngle}°</strong>)<br>Ristkelgu näidud: <strong>${readings} mm</strong>`);
+    }
+    if (lines.length) depthStep = `<li>Soovituslik lõikesügavus<br>${lines.join("<br>")}</li>`;
+  }
+
   outputEl.innerHTML = `
     <ol>
       ${summaryStep}
-      <li>Veendu, et kitarris on paigaldatud hammasrattad <strong>${gitaraGearsString(r.gears)}</strong>.</li>
-      <li>Liiguta keermesammu hoob ${leverRef("E")} asendisse <strong>${r.leverE}</strong>.</li>
-      <li>Liiguta hoob ${leverRef("C")} asendisse <strong>${r.leverC}</strong> ja hoob ${leverRef("D")} asendisse <strong>${r.leverD}</strong>.</li>
+      ${speedStep}
+      <li>Ettenihe<br>Kitarris hammasrattad <strong>${r.gears.join(", ")}</strong><br>Keermesammu hoob ${leverRef("E")} asendis <strong>${r.leverE}</strong><br>Kordistushoovad ${leverRef("C")} ja ${leverRef("D")} asendites <strong>${r.leverC}</strong> ja <strong>${r.leverD}</strong></li>
+      ${depthStep}
     </ol>
   `;
 }
@@ -212,7 +251,9 @@ threadTypeEl.addEventListener("change", () => {
 threadValueEl.addEventListener("change", generateInstructions);
 directionEl.addEventListener("change", generateInstructions);
 diameterEl.addEventListener("input", generateInstructions);
+materialEl.addEventListener("change", generateInstructions);
 
 populateStandardThreads();
+populateMaterials();
 populateValues();
 generateInstructions();
