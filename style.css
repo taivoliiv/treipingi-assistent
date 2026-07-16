@@ -33,9 +33,14 @@ body {
 }
 
 .app-header {
-  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
   background: var(--panel-bg);
+}
+
+.app-header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem;
 }
 
 .app-header h1 {
