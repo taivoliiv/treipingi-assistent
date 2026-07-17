@@ -176,7 +176,7 @@ function generateInstructions() {
 
   const summaryLines = [];
   if (std) summaryLines.push(`Standard: <strong>${std.designation}</strong>`);
-  summaryLines.push(`Keere: <strong>${describeValue(r)}</strong>`);
+  summaryLines.push(`Keerme samm: <strong>${describeValue(r)}</strong>`);
 
   let blank = null;
   const hasDiameter = r.threadType !== "module" && !Number.isNaN(nominalDiameter) && nominalDiameter > 0;
@@ -255,5 +255,12 @@ materialEl.addEventListener("change", generateInstructions);
 
 populateStandardThreads();
 populateMaterials();
-populateValues();
+
+const defaultStandardIndex = STANDARD_THREADS.findIndex((std) => std.designation === 'G3/4" BSP');
+if (defaultStandardIndex !== -1) {
+  standardThreadEl.value = String(defaultStandardIndex);
+  applyStandardThread();
+} else {
+  populateValues();
+}
 generateInstructions();
