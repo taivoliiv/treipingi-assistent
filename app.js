@@ -1,6 +1,10 @@
+const operationEl = document.getElementById("operation");
 const standardThreadEl = document.getElementById("standard-thread");
+const standardThreadFieldEl = document.getElementById("standard-thread-field");
 const threadTypeEl = document.getElementById("thread-type");
+const threadTypeFieldEl = document.getElementById("thread-type-field");
 const threadValueEl = document.getElementById("thread-value");
+const threadValueFieldEl = document.getElementById("thread-value-field");
 const directionEl = document.getElementById("thread-direction");
 const directionFieldEl = document.getElementById("direction-field");
 const diameterEl = document.getElementById("diameter");
@@ -77,10 +81,25 @@ function populateValues() {
     threadValueEl.appendChild(el);
   });
 
-  const supportsBlankSize = threadTypeEl.value !== "module";
-  diameterFieldEl.style.display = supportsBlankSize ? "" : "none";
-  directionFieldEl.style.display = supportsBlankSize ? "" : "none";
-  materialFieldEl.style.display = supportsBlankSize ? "" : "none";
+  updateOperationVisibility();
+}
+
+function updateOperationVisibility() {
+  const isThreading = operationEl.value === "threading";
+  standardThreadFieldEl.style.display = isThreading ? "" : "none";
+  threadTypeFieldEl.style.display = isThreading ? "" : "none";
+  threadValueFieldEl.style.display = isThreading ? "" : "none";
+
+  if (isThreading) {
+    const supportsBlankSize = threadTypeEl.value !== "module";
+    diameterFieldEl.style.display = supportsBlankSize ? "" : "none";
+    directionFieldEl.style.display = supportsBlankSize ? "" : "none";
+    materialFieldEl.style.display = supportsBlankSize ? "" : "none";
+  } else {
+    diameterFieldEl.style.display = "";
+    directionFieldEl.style.display = "none";
+    materialFieldEl.style.display = "";
+  }
 }
 
 function populateMaterials() {
@@ -162,6 +181,34 @@ function findMatchingStandard(r, diameter) {
 }
 
 function generateInstructions() {
+  if (operationEl.value === "turning") {
+    generateTurningInstructions();
+  } else {
+    generateThreadingInstructions();
+  }
+}
+
+function generateTurningInstructions() {
+  const nominalDiameter = parseFloat(diameterEl.value);
+  const material = MATERIALS[Number(materialEl.value)];
+
+  if (!material || Number.isNaN(nominalDiameter) || nominalDiameter <= 0) {
+    outputEl.innerHTML = '<p class="placeholder">Sisesta läbimõõt ja vali materjal.</p>';
+    return;
+  }
+
+  const turningRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin, nominalDiameter);
+  const turning = findNearestSpindleSpeed(turningRpmTarget);
+  const turningActualVc = Number(calcCuttingSpeedFromRpm(turning.rpm, nominalDiameter).toFixed(1));
+
+  outputEl.innerHTML = `
+    <ol>
+      <li>Optimaalne kiirus<br>Läbimõõt: <strong>Ø${nominalDiameter} mm</strong><br>Pöörded: <strong>${turning.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${turning.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${turning.leverG}</strong>)<br>Lõikekiirus: <strong>${turningActualVc} m/min</strong></li>
+    </ol>
+  `;
+}
+
+function generateThreadingInstructions() {
   const opt = currentOptions[Number(threadValueEl.value)];
 
   if (!opt) {
@@ -248,6 +295,10 @@ outputEl.addEventListener("mouseout", (event) => {
   if (ref) clearHighlights();
 });
 
+operationEl.addEventListener("change", () => {
+  updateOperationVisibility();
+  generateInstructions();
+});
 standardThreadEl.addEventListener("change", () => {
   applyStandardThread();
   generateInstructions();
