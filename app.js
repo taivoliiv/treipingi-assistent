@@ -198,11 +198,13 @@ function generateInstructions() {
   if (material && hasDiameter && directionEl.value === "external") {
     const turningRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin, blank.diameter);
     const turning = findNearestSpindleSpeed(turningRpmTarget);
+    const turningActualVc = Number(calcCuttingSpeedFromRpm(turning.rpm, blank.diameter).toFixed(1));
 
     const threadingRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin * THREADING_SPEED_FACTOR, blank.diameter);
     const threading = findNearestSpindleSpeed(threadingRpmTarget);
+    const threadingActualVc = Number(calcCuttingSpeedFromRpm(threading.rpm, blank.diameter).toFixed(1));
 
-    speedStep = `<li>Optimaalne kiirus<br>Tooriku treimisel: <strong>${turning.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${turning.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${turning.leverG}</strong>)<br>Keermestamisel: <strong>${threading.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${threading.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${threading.leverG}</strong>)</li>`;
+    speedStep = `<li>Optimaalne kiirus<br>Tooriku treimisel: <strong>${turning.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${turning.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${turning.leverG}</strong>)<br>Keermestamisel: <strong>${threading.rpm} p/min</strong> (hoob ${leverRef("B")} asendis <strong>${threading.leverB}</strong> ja hoob ${leverRef("G")} asendis <strong>${threading.leverG}</strong>)<br>Lõikekiirus vastavalt <strong>${turningActualVc}</strong> ja <strong>${threadingActualVc} m/min</strong></li>`;
   }
 
   let depthStep = "";

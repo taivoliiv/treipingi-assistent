@@ -109,6 +109,10 @@ function calcRpmForCuttingSpeed(vcMPerMin, diameterMm) {
   return (vcMPerMin * 1000) / (Math.PI * diameterMm);
 }
 
+function calcCuttingSpeedFromRpm(rpm, diameterMm) {
+  return (rpm * Math.PI * diameterMm) / 1000;
+}
+
 function findNearestSpindleSpeed(targetRpm) {
   return SPINDLE_SPEEDS.reduce((best, cur) =>
     Math.abs(cur.rpm - targetRpm) < Math.abs(best.rpm - targetRpm) ? cur : best
