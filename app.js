@@ -200,7 +200,13 @@ function generateInstructions() {
     const turning = findNearestSpindleSpeed(turningRpmTarget);
     const turningActualVc = Number(calcCuttingSpeedFromRpm(turning.rpm, blank.diameter).toFixed(1));
 
-    const threadingRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin * THREADING_SPEED_FACTOR, blank.diameter);
+    const threadingRpmFromVc = calcRpmForCuttingSpeed(material.turningVcMPerMin * THREADING_SPEED_FACTOR, blank.diameter);
+    const threadingRpmFromReactionTime = calcRpmForReactionTime(
+      r.pitchMm,
+      THREADING_CLEARANCE_MM,
+      THREADING_TARGET_REACTION_TIME_S
+    );
+    const threadingRpmTarget = Math.min(threadingRpmFromVc, threadingRpmFromReactionTime);
     const threading = findNearestSpindleSpeed(threadingRpmTarget);
     const threadingActualVc = Number(calcCuttingSpeedFromRpm(threading.rpm, blank.diameter).toFixed(1));
 

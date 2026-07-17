@@ -113,6 +113,17 @@ function calcCuttingSpeedFromRpm(rpm, diameterMm) {
   return (rpm * Math.PI * diameterMm) / 1000;
 }
 
+// Tüüpiline vaba ruum (nt keermevaba soon) enne takistust (padrun, õlg),
+// mida kasutatakse reageerimisaja hindamiseks spindli reversi meetodil.
+const THREADING_CLEARANCE_MM = 5;
+
+// Mõistlik sihtreageerimisaeg spindli reversi meetodil keermestamiseks.
+const THREADING_TARGET_REACTION_TIME_S = 1.5;
+
+function calcRpmForReactionTime(pitchMm, clearanceMm, reactionTimeS) {
+  return (clearanceMm * 60) / (pitchMm * reactionTimeS);
+}
+
 function findNearestSpindleSpeed(targetRpm) {
   return SPINDLE_SPEEDS.reduce((best, cur) =>
     Math.abs(cur.rpm - targetRpm) < Math.abs(best.rpm - targetRpm) ? cur : best
