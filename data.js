@@ -26,14 +26,16 @@ const SPINDLE_SPEEDS = [
 // Üldtunnustatud lõikekiirused (Vc, m/min) HSS-terale, tavatreimise jaoks.
 // Keermelõikusel kasutatakse madalamat kiirust (vt THREADING_SPEED_FACTOR),
 // et jääks aega poolmutrit käsitsi juhtida. turningDepthMm on üldtunnustatud
-// soovituslik lõikesügavus (ap) HSS-teraga ühe käiguga treimisel.
+// soovituslik lõikesügavus (ap) ühe käiguga treimisel. vc.hss ja vc.carbide
+// on üldtunnustatud lõikekiirused (m/min) vastavalt HSS- ja kõvasulamterale -
+// kõvasulam lubab tunduvalt kiiremat töötlust.
 const MATERIALS = [
-  { id: "aluminium", label: "Alumiinium", turningVcMPerMin: 150, turningDepthMm: 2.5 },
-  { id: "brass", label: "Messing", turningVcMPerMin: 90, turningDepthMm: 2 },
-  { id: "cast-iron", label: "Malm", turningVcMPerMin: 20, turningDepthMm: 2 },
-  { id: "c45", label: "Teras (C45)", turningVcMPerMin: 25, turningDepthMm: 1.5 },
-  { id: "alloy-steel", label: "Tööriistateras", turningVcMPerMin: 15, turningDepthMm: 1 },
-  { id: "stainless", label: "Roostevaba teras", turningVcMPerMin: 15, turningDepthMm: 1 },
+  { id: "aluminium", label: "Alumiinium", vc: { hss: 150, carbide: 400 }, turningDepthMm: 2.5 },
+  { id: "brass", label: "Messing", vc: { hss: 90, carbide: 250 }, turningDepthMm: 2 },
+  { id: "cast-iron", label: "Malm", vc: { hss: 20, carbide: 100 }, turningDepthMm: 2 },
+  { id: "c45", label: "Teras (C45)", vc: { hss: 25, carbide: 180 }, turningDepthMm: 1.5 },
+  { id: "alloy-steel", label: "Tööriistateras", vc: { hss: 15, carbide: 100 }, turningDepthMm: 1 },
+  { id: "stainless", label: "Roostevaba teras", vc: { hss: 15, carbide: 100 }, turningDepthMm: 1 },
 ];
 
 const THREADING_SPEED_FACTOR = 0.4;

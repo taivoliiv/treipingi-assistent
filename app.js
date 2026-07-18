@@ -11,6 +11,8 @@ const diameterEl = document.getElementById("diameter");
 const diameterFieldEl = document.getElementById("diameter-field");
 const materialEl = document.getElementById("material");
 const materialFieldEl = document.getElementById("material-field");
+const toolTypeEl = document.getElementById("tool-type");
+const toolTypeFieldEl = document.getElementById("tool-type-field");
 const outputEl = document.getElementById("instructions-output");
 
 const EXTERNAL_TURNING_ALLOWANCE_MM = 0.1;
@@ -95,10 +97,12 @@ function updateOperationVisibility() {
     diameterFieldEl.style.display = supportsBlankSize ? "" : "none";
     directionFieldEl.style.display = supportsBlankSize ? "" : "none";
     materialFieldEl.style.display = supportsBlankSize ? "" : "none";
+    toolTypeFieldEl.style.display = supportsBlankSize ? "" : "none";
   } else {
     diameterFieldEl.style.display = "";
     directionFieldEl.style.display = "none";
     materialFieldEl.style.display = "";
+    toolTypeFieldEl.style.display = "";
   }
 }
 
@@ -197,7 +201,8 @@ function generateTurningInstructions() {
     return;
   }
 
-  const turningRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin, nominalDiameter);
+  const turningVc = material.vc[toolTypeEl.value];
+  const turningRpmTarget = calcRpmForCuttingSpeed(turningVc, nominalDiameter);
   const turning = findNearestSpindleSpeed(turningRpmTarget);
   const turningActualVc = Number(calcCuttingSpeedFromRpm(turning.rpm, nominalDiameter).toFixed(1));
 
@@ -243,11 +248,12 @@ function generateThreadingInstructions() {
   let speedStep = "";
   const material = MATERIALS[Number(materialEl.value)];
   if (material && hasDiameter && directionEl.value === "external") {
-    const turningRpmTarget = calcRpmForCuttingSpeed(material.turningVcMPerMin, blank.diameter);
+    const turningVc = material.vc[toolTypeEl.value];
+    const turningRpmTarget = calcRpmForCuttingSpeed(turningVc, blank.diameter);
     const turning = findNearestSpindleSpeed(turningRpmTarget);
     const turningActualVc = Number(calcCuttingSpeedFromRpm(turning.rpm, blank.diameter).toFixed(1));
 
-    const threadingRpmFromVc = calcRpmForCuttingSpeed(material.turningVcMPerMin * THREADING_SPEED_FACTOR, blank.diameter);
+    const threadingRpmFromVc = calcRpmForCuttingSpeed(turningVc * THREADING_SPEED_FACTOR, blank.diameter);
     const threadingRpmFromReactionTime = calcRpmForReactionTime(
       r.pitchMm,
       THREADING_CLEARANCE_MM,
@@ -311,6 +317,7 @@ threadValueEl.addEventListener("change", generateInstructions);
 directionEl.addEventListener("change", generateInstructions);
 diameterEl.addEventListener("input", generateInstructions);
 materialEl.addEventListener("change", generateInstructions);
+toolTypeEl.addEventListener("change", generateInstructions);
 
 populateStandardThreads();
 populateMaterials();
